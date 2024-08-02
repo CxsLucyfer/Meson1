@@ -1,0 +1,17 @@
+project('gobject-introspection', 'c')
+
+gnome = import('gnome')
+gio = dependency('gio-2.0')
+giounix = dependency('gio-unix-2.0')
+glib = dependency('glib-2.0')
+gobj = dependency('gobject-2.0')
+gir = dependency('gobject-introspection-1.0')
+gmod = dependency('gmodule-2.0')
+add_global_arguments('-DMESON_TEST', language : 'c')
+
+subdir('resources')
+subdir('gir')
+subdir('schemas')
+subdir('gdbus')
+subdir('mkenums')
+subdir('genmarshal')

@@ -1,0 +1,25 @@
+version: 1.0.{build}
+
+os: Visual Studio 2015
+
+platform:
+  - x86
+
+branches:
+  only:
+    - master
+
+install:
+ - ps: (new-object net.webclient).DownloadFile('https://dl.dropboxusercontent.com/u/37517477/ninja.exe', 'c:\python34\ninja.exe')
+ - cmd: copy c:\python34\python.exe c:\python34\python3.exe
+ - '"C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd" /x86'
+
+build_script:
+  - cmd: echo No build step.
+
+test_script:
+  - cmd: PATH c:\python34;%PATH%; && python3 run_tests.py --backend=ninja
+
+on_finish:
+  - appveyor PushArtifact meson-test-run.txt -DeploymentName "Text test logs"
+  - appveyor PushArtifact meson-test-run.xml -DeploymentName "XML test logs"
