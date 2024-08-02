@@ -1,0 +1,26 @@
+FROM ubuntu:bionic
+
+ENV DEBIAN_FRONTEND noninteractive
+
+RUN apt-get -y update && apt-get -y upgrade \
+&& apt-get -y install wget unzip \
+&& apt-get -y build-dep meson \
+&& apt-get -y install qt5-default qtbase5-private-dev clang \
+&& apt-get -y install pkg-config-arm-linux-gnueabihf \
+&& apt-get -y install doxygen \
+&& apt-get -y install python3-pip libxml2-dev libxslt1-dev cmake libyaml-dev \
+&& apt-get -y install qt4-linguist-tools \
+&& apt-get -y install python-dev \
+&& apt-get -y install libomp-dev openssh-client \
+&& apt-get -y install -y clang libclang-dev llvm-dev flex \
+&& apt-get -y install gdc ldc \
+&& python3 -m pip install hotdoc codecov \
+&& dub fetch urld \
+&& dub build urld --compiler=gdc \
+&& dub fetch dubtestproject \
+&& dub build dubtestproject:test1 --compiler=ldc2 \
+&& dub build dubtestproject:test2 --compiler=ldc2
+
+# OpenSSH client is needed to run openmpi binaries.
+
+ENV LANG='C.UTF-8'
