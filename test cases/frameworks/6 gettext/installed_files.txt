@@ -1,0 +1,3 @@
+usr/bin/intlprog
+usr/share/locale/de/LC_MESSAGES/intltest.mo
+usr/share/locale/fi/LC_MESSAGES/intltest.mo
