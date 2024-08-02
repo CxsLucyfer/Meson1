@@ -1,0 +1,2 @@
+usr/include/simple.h
+usr/lib/pkgconfig/simple.pc

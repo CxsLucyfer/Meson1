@@ -1,0 +1,4 @@
+usr/lib/libsome.dylib
+usr/lib/libnoversion.dylib
+usr/lib/libonlyversion.dylib
+usr/lib/libonlysoversion.dylib

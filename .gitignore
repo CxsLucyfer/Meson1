@@ -1,0 +1,21 @@
+/.project
+/.pydevproject
+/.settings
+/.cproject
+/.idea
+
+__pycache__
+/install dir
+/work area
+
+/meson-test-run.txt
+/meson-test-run.xml
+
+.DS_Store
+*~
+packagecache
+/MANIFEST
+/build
+/dist
+/meson.egg-info
+
