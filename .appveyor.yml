@@ -1,0 +1,69 @@
+version: 1.0.{build}
+
+os: Visual Studio 2015
+
+environment:
+  matrix:
+    - arch: x86
+      compiler: msvc2010
+      backend: ninja
+
+    - arch: x86
+      compiler: msvc2010
+      backend: vs2010
+
+    - arch: x86
+      compiler: msvc2015
+      backend: ninja
+
+    - arch: x86
+      compiler: msvc2015
+      backend: vs2015
+
+    - arch: x86
+      compiler: msys2-mingw
+      backend: ninja
+
+    - arch: x64
+      compiler: msvc2017
+      backend: ninja
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+
+    - arch: x64
+      compiler: msvc2017
+      backend: vs2017
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+
+    - arch: x64
+      compiler: msys2-mingw
+      backend: ninja
+
+platform:
+  - x64
+
+branches:
+  only:
+    - master
+
+install:
+  # Use the x86 python only when building for x86 for the cpython tests.
+  # For all other archs (including, say, arm), use the x64 python.
+  - ps: (new-object net.webclient).DownloadFile('https://www.dropbox.com/s/bbzvepq85hv47x1/ninja.exe?dl=1', 'C:\projects\meson\ninja.exe')
+  - cmd: if %arch%==x86 (set MESON_PYTHON_PATH=C:\python34) else (set MESON_PYTHON_PATH=C:\python34-x64)
+  - cmd: echo Using Python at %MESON_PYTHON_PATH%
+  - cmd: if %compiler%==msvc2010 ( call "C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\vcvarsall.bat" %arch% )
+  - cmd: if %compiler%==msvc2015 ( call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" %arch% )
+  - cmd: if %compiler%==msvc2017 ( call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\Tools\VsDevCmd.bat" -arch=%arch% )
+  - cmd: if %compiler%==msys2-mingw (if %arch%==x86 (set "PATH=C:\msys64\mingw32\bin;%PATH%") else (set "PATH=C:\msys64\mingw64\bin;%PATH%"))
+
+build_script:
+  - cmd: echo No build step.
+  - cmd: if %backend%==ninja ( ninja.exe --version ) else ( MSBuild /version & echo. )
+
+test_script:
+  - cmd: echo Running tests for %arch% and %compiler% with the %backend% backend
+  - cmd: PATH=%cd%;%MESON_PYTHON_PATH%;%PATH%; && python run_tests.py --backend=%backend%
+
+on_finish:
+  - appveyor PushArtifact meson-test-run.txt -DeploymentName "Text test logs"
+  - appveyor PushArtifact meson-test-run.xml -DeploymentName "XML test logs"
