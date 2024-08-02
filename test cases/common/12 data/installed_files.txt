@@ -1,0 +1,3 @@
+usr/share/progname/datafile.dat
+usr/share/progname/vanishing.dat
+etc/etcfile.dat

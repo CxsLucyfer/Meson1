@@ -1,0 +1,3 @@
+usr/bin/prog
+usr/lib/libshar.so
+usr/lib/libstat.a

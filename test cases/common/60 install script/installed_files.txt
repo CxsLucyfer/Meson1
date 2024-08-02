@@ -1,0 +1,2 @@
+usr/bin/prog
+usr/diiba/daaba/file.dat

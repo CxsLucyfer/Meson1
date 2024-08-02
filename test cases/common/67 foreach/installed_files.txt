@@ -1,0 +1,3 @@
+usr/bin/prog1
+usr/bin/prog2
+usr/bin/prog3
