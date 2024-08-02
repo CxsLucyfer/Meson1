@@ -1,0 +1,103 @@
+version: '{build}'
+
+os: Visual Studio 2015
+
+environment:
+  matrix:
+    - arch: x86
+      compiler: msys2-mingw
+      backend: ninja
+
+    - arch: x86
+      compiler: msvc2010
+      backend: ninja
+
+    - arch: x86
+      compiler: msvc2010
+      backend: vs2010
+
+    - arch: x86
+      compiler: msvc2015
+      backend: ninja
+
+    - arch: x86
+      compiler: msvc2015
+      backend: vs2015
+
+    - arch: x64
+      compiler: cygwin
+      backend: ninja
+
+    - arch: x64
+      compiler: msys2-mingw
+      backend: ninja
+
+    - arch: x64
+      compiler: msvc2017
+      backend: ninja
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+
+    - arch: x64
+      compiler: msvc2017
+      backend: vs2017
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+
+platform:
+  - x64
+
+branches:
+  only:
+    - master
+
+skip_commits:
+  files:
+    - docs/**/*
+
+install:
+  - cmd: set "ORIG_PATH=%PATH%"
+  # Boost 1.56.0: https://www.appveyor.com/docs/build-environment/#boost
+  #- cmd: set "BOOST_ROOT=C:\Libraries\boost"
+  # Use the x86 python only when building for x86 for the cpython tests.
+  # For all other archs (including, say, arm), use the x64 python.
+  - ps: (new-object net.webclient).DownloadFile('https://www.dropbox.com/s/bbzvepq85hv47x1/ninja.exe?dl=1', 'C:\projects\meson\ninja.exe')
+  - cmd: if %arch%==x86 (set MESON_PYTHON_PATH=C:\python34) else (set MESON_PYTHON_PATH=C:\python34-x64)
+
+  # Set paths and config for each build type.
+  - cmd: if %compiler%==msvc2010 ( call "C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\vcvarsall.bat" %arch% )
+  - cmd: if %compiler%==msvc2015 ( call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" %arch% )
+  - cmd: if %compiler%==msvc2017 ( call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\Tools\VsDevCmd.bat" -arch=%arch% )
+  - cmd: if %compiler%==msys2-mingw (if %arch%==x86 (set "PATH=C:\msys64\mingw32\bin;%PATH%") else (set "PATH=C:\msys64\mingw64\bin;%PATH%"))
+  - cmd: if not %compiler%==cygwin ( set "PATH=%cd%;%MESON_PYTHON_PATH%;%PATH%;" )
+  - cmd: if %compiler%==cygwin ( set PYTHON=python3 ) else ( set PYTHON=python )
+  - cmd: if %compiler%==cygwin ( set WRAPPER=ci\run-in-cygwin.bat )
+  - cmd: if %compiler%==cygwin ( %WRAPPER% which %PYTHON% ) else ( where %PYTHON% )
+
+  # Install additional packages needed for specific builds.
+  - ps: If($Env:compiler -eq 'msys2-mingw') {(new-object Net.WebClient).DownloadFile('https://bootstrap.pypa.io/get-pip.py', 'C:\projects\meson\get-pip.py')}
+  - cmd: if %compiler%==msys2-mingw ( %PYTHON% "C:\projects\meson\get-pip.py" )
+  - cmd: if %compiler%==cygwin ( call ci\appveyor-install.bat )
+
+  # Install additional packages needed for all builds.
+  - cmd: "%WRAPPER% %PYTHON% -m pip install codecov"
+
+build_script:
+  - cmd: echo No build step.
+  - cmd: if %backend%==ninja ( %WRAPPER% ninja.exe --version ) else ( MSBuild /version & echo. )
+
+test_script:
+  - cmd: echo Running tests for %arch% and %compiler% with the %backend% backend
+  - cmd: "%WRAPPER% %PYTHON% run_tests.py --cov --backend=%backend%"
+
+after_test:
+  - cmd: "%WRAPPER% %PYTHON% -m coverage combine"
+  # Generate XML report manually because codecov module doesn't know how to run it properly.
+  - cmd: "%WRAPPER% %PYTHON% -m coverage xml"
+  - cmd: "%WRAPPER% %PYTHON% -m codecov -X search pycov -f coverage.xml -n windows-%arch%-%compiler%-%backend%"
+
+on_finish:
+  - set "PATH=%ORIG_PATH%"
+  - appveyor PushArtifact meson-test-run.txt -DeploymentName "Text test logs"
+  - appveyor PushArtifact meson-test-run.xml -DeploymentName "XML test logs"
+
+cache:
+  - C:\cache
