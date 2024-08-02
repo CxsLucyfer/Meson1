@@ -1,0 +1,67 @@
+name: UnusedMissingReturn
+# this workflow checks for
+# * unused input arguments
+# * missing return values
+# * strict prototypes
+# some users have default configs that will needlessly fail Meson self-tests due to these syntax.
+
+on:
+  push:
+    paths:
+    - ".github/workflows/unusedargs_missingreturn.yml"
+    - "test cases/cmake/**"
+    - "test cases/common/**"
+    - "test cases/fortran/**"
+    - "test cases/linuxlike/**"
+    - "test cases/objc/**"
+    - "test cases/objcpp/**"
+    - "test caes/windows/**"
+
+  pull_request:
+    paths:
+    - ".github/workflows/unusedargs_missingreturn.yml"
+    - "test cases/cmake/**"
+    - "test cases/common/**"
+    - "test cases/fortran/**"
+    - "test cases/linuxlike/**"
+    - "test cases/objc/**"
+    - "test cases/objcpp/**"
+    - "test caes/windows/**"
+
+jobs:
+
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - uses: actions/setup-python@v1
+      with:
+        python-version: '3.x'
+    - name: Install Compilers
+      run: |
+        sudo apt update -yq
+        sudo apt install -yq --no-install-recommends g++ gfortran ninja-build gobjc gobjc++
+    - run: python run_project_tests.py --only cmake common fortran platform-linux "objective c" "objective c++"
+      env:
+        CI: "1"
+        CFLAGS: "-Werror=unused-parameter -Werror=return-type -Werror=strict-prototypes"
+        CPPFLAGS: "-Werror=unused-parameter -Werror=return-type"
+        FFLAGS: "-fimplicit-none"
+
+  windows:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v1
+    - uses: actions/setup-python@v1
+      with:
+        python-version: '3.x'
+    - run: pip install ninja pefile
+    - run: python run_project_tests.py --only platform-windows
+      env:
+        CI: "1"
+        CFLAGS: "-Werror=unused-parameter -Werror=return-type -Werror=strict-prototypes"
+        CPPFLAGS: "-Werror=unused-parameter -Werror=return-type"
+        FFLAGS: "-fimplicit-none"
+        CC: gcc
+        CXX: g++
+        FC: gfortran
