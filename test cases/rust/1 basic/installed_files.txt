@@ -1,0 +1,2 @@
+usr/bin/program?exe
+usr/bin/program2?exe
