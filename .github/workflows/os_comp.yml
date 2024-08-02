@@ -1,0 +1,62 @@
+name: OS Comp Tests
+
+on: [push, pull_request]
+
+jobs:
+  xenial:
+    name: Ubuntu 16.04
+    runs-on: ubuntu-16.04
+    steps:
+    - uses: actions/checkout@v1
+    - name: Install Dependencies
+      run: |
+        sudo apt update -yq
+        sudo apt install -yq --no-install-recommends python3-setuptools python3-pip g++ gfortran gobjc gobjc++ zlib1g-dev python-dev python3-dev
+    - name: Install ninja-build tool
+      uses: seanmiddleditch/gha-setup-ninja@v1
+    - name: Python version
+      run: python3 --version
+    - name: Ninja version
+      run: ninja --version
+    - name: Run tests
+      run: LD_LIBRARY_PATH=/usr/local/share/boost/1.69.0/lib/:$(rustc --print sysroot)/lib:$LD_LIBRARY_PATH python3 run_tests.py
+      env:
+        CI: '1'
+        XENIAL: '1'
+
+  arch:
+    name: Arch Linux
+    runs-on: ubuntu-latest
+    container: mensinda/arch:latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Run tests
+      run: ./run_tests.py
+      env:
+        CI: '1'
+
+  fedora:
+    name: Fedora
+    runs-on: ubuntu-latest
+    container: mensinda/fedora:latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Run tests
+      run: ./run_tests.py
+      env:
+        CI: '1'
+        SKIP_SCIENTIFIC: '1'
+        SKIP_STATIC_BOOST: '1'
+
+  opensuse:
+    name: OpenSUSE
+    runs-on: ubuntu-latest
+    container: mensinda/opensuse:latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Run tests
+      run: ./run_tests.py
+      env:
+        CI: '1'
+        SKIP_SCIENTIFIC: '1'
+        SKIP_STATIC_BOOST: '1'
